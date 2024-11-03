@@ -3,6 +3,12 @@
     "description": "Event sourcing helper package for common projects",
     "type": "library",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Dranzd",
+            "email": "dranzd@gmail.com"
+        }
+    ],
     "minimum-stability": "stable",
     "require": {
         "php": "^8.1",
