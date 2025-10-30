@@ -256,6 +256,6 @@ abstract class GenericMessage implements Message
             return;
         }
 
-        $this->payload = $payload;
+        $this->{'payload'} = $payload;
     }
 }
