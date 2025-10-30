@@ -64,7 +64,7 @@ abstract class GenericMessage implements Message
         }
     }
 
-    public static function fromArray(array $array): GenericMessage
+    public static function fromArray(array $array): static
     {
         $reflectionClass = new \ReflectionClass(\get_called_class());
 
@@ -89,7 +89,7 @@ abstract class GenericMessage implements Message
         ;
     }
 
-    final public function withMessageUuid(string $messageUuid): GenericMessage
+    final public function withMessageUuid(string $messageUuid): static
     {
         $clone = clone $this;
 
@@ -98,7 +98,7 @@ abstract class GenericMessage implements Message
         return $clone;
     }
 
-    final public function withMessageName(string $messageName): GenericMessage
+    final public function withMessageName(string $messageName): static
     {
         $clone = clone $this;
 
@@ -107,12 +107,12 @@ abstract class GenericMessage implements Message
         return $clone;
     }
 
-    public function mergeMetadata(array $metdata): GenericMessage
+    public function mergeMetadata(array $metdata): static
     {
         return $this->withMetadata(\array_merge_recursive($this->getMetadata(), $metdata));
     }
 
-    public function withMetadata(array $metadata): GenericMessage
+    public function withMetadata(array $metadata): static
     {
         $clone = clone $this;
 
@@ -121,7 +121,7 @@ abstract class GenericMessage implements Message
         return $clone;
     }
 
-    public function withPayload(array $payload): GenericMessage
+    public function withPayload(array $payload): static
     {
         return $this;
     }

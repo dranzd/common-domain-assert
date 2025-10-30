@@ -15,7 +15,7 @@ class TestCommand extends GenericMessage implements Command
 
     private $payload = [];
 
-    public function withPayload(array $payload): GenericMessage
+    public function withPayload(array $payload): static
     {
         $clone = clone $this;
         $clone->payload = $payload;
