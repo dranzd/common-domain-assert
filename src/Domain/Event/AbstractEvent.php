@@ -11,9 +11,7 @@ abstract class AbstractEvent extends GenericMessage implements Event
     {
         parent::__construct(
             Uuid::generateAsString(),
-            \defined(static::class . '::MESSAGE_NAME') && \constant(static::class . '::MESSAGE_NAME')
-                ? \constant(static::class . '::MESSAGE_NAME')
-                : \get_class($this),
+            static::expectedMessageName(),
             []
         );
     }
