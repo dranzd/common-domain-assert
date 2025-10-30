@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  php:
+    build: .
+    container_name: common-event-sourcing
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: tail -f /dev/null
