@@ -53,12 +53,12 @@ abstract class AbstractEvent extends GenericMessage implements Event
     }
 
     /**
-     * Get metadata value or null if not exists
+     * Get metadata value by key or null if not exists
      * 
      * @param string $key
      * @return mixed|null
      */
-    public function metadata(string $key)
+    public function getMetadataValue(string $key)
     {
         return $this->getMetadataKeyValueOrDefault($key, null);
     }

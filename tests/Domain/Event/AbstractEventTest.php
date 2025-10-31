@@ -87,19 +87,19 @@ final class AbstractEventTest extends TestCase
         $this->assertTrue($event->hasMetadata('test_key'));
     }
 
-    public function testMetadataReturnsValueForExistingKey()
+    public function testGetMetadataValueReturnsValueForExistingKey()
     {
         $event = new TestEvent();
         $event = $event->withMetadata(['test_key' => 'test_value']);
 
-        $this->assertEquals('test_value', $event->metadata('test_key'));
+        $this->assertEquals('test_value', $event->getMetadataValue('test_key'));
     }
 
-    public function testMetadataReturnsNullForNonExistentKey()
+    public function testGetMetadataValueReturnsNullForNonExistentKey()
     {
         $event = new TestEvent();
 
-        $this->assertNull($event->metadata('non_existent_key'));
+        $this->assertNull($event->getMetadataValue('non_existent_key'));
     }
 
     public function testWithAddedMetadataAddsNewMetadata()
@@ -108,8 +108,8 @@ final class AbstractEventTest extends TestCase
         $event = $event->withMetadata(['existing' => 'value']);
         $newEvent = $event->withAddedMetadata('new_key', 'new_value');
 
-        $this->assertEquals('value', $newEvent->metadata('existing'));
-        $this->assertEquals('new_value', $newEvent->metadata('new_key'));
+        $this->assertEquals('value', $newEvent->getMetadataValue('existing'));
+        $this->assertEquals('new_value', $newEvent->getMetadataValue('new_key'));
         $this->assertNotSame($event, $newEvent);
     }
 
@@ -120,8 +120,8 @@ final class AbstractEventTest extends TestCase
             ->withAddedMetadata('key1', 'value1')
             ->withAddedMetadata('key2', 'value2');
 
-        $this->assertEquals('value1', $newEvent->metadata('key1'));
-        $this->assertEquals('value2', $newEvent->metadata('key2'));
+        $this->assertEquals('value1', $newEvent->getMetadataValue('key1'));
+        $this->assertEquals('value2', $newEvent->getMetadataValue('key2'));
     }
 
     public function testExpectedMessageNameUsesConstant()
@@ -159,8 +159,8 @@ final class AbstractEventTest extends TestCase
         $event = $event->withMetadata(['key1' => 'value1', 'key2' => 'value2']);
         $newEvent = $event->withAddedMetadata('key3', 'value3');
 
-        $this->assertEquals('value1', $newEvent->metadata('key1'));
-        $this->assertEquals('value2', $newEvent->metadata('key2'));
-        $this->assertEquals('value3', $newEvent->metadata('key3'));
+        $this->assertEquals('value1', $newEvent->getMetadataValue('key1'));
+        $this->assertEquals('value2', $newEvent->getMetadataValue('key2'));
+        $this->assertEquals('value3', $newEvent->getMetadataValue('key3'));
     }
 }
