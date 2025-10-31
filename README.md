@@ -6,19 +6,22 @@ A framework-agnostic event sourcing library that provides common abstractions an
 
 - **Event Sourcing Primitives**: Base classes and interfaces for event-sourced aggregates
 - **CQRS Support**: Command, Event, and Query message types with generic infrastructure
-- **Event Versioning**: Built-in support for event schema evolution with upcasters
+- **Event Versioning**: Built-in support for event schema evolution with upcasters and VersionedEventTrait
+- **Aggregate Root Pattern**: AggregateRootTrait with automatic event replay and version management
+- **Flexible Metadata**: Trait-based causation, correlation, and actor tracking
+- **Metadata Injectors**: Utilities to transfer metadata from commands to events
 - **Named Constructor Pattern**: Expressive, domain-focused event creation
-- **Value Object Integration**: Type-safe domain modeling with validation
-- **Metadata Support**: Causation, correlation, and custom metadata tracking
-- **Framework Support**: Compatible with Laravel and Laminas frameworks
 - **DDD Building Blocks**: Domain events, aggregates, and value objects
-- **Onion Architecture**: Clean separation of concerns with framework-agnostic core
-- **Type Safety**: Full PHP 8.1+ type hints and strict typing
+- **Framework Agnostic**: Clean separation of concerns with no framework dependencies
+- **Type Safety**: Full PHP 8.1+ type hints with static return types for fluent interfaces
+- **Comprehensive Tests**: 123 tests with 288 assertions ensuring reliability
 
 ## Requirements
 
 - PHP 8.1 or higher
 - ext-json
+- ramsey/uuid ^4.7
+- webmozart/assert ^1.11
 
 ## Installation
 
@@ -26,22 +29,7 @@ A framework-agnostic event sourcing library that provides common abstractions an
 composer require dranzd/common-event-sourcing
 ```
 
-### Dependencies
-
-```bash
-composer require ramsey/uuid:^4.0
-composer require doctrine/collections:^2.0
-composer require webmozart/assert:^1.11
-```
-
-**Optional** (for framework integration):
-```bash
-# For Laravel
-composer require illuminate/support
-
-# For Laminas
-composer require laminas/laminas-stdlib
-```
+The required dependencies (`ramsey/uuid` and `webmozart/assert`) will be installed automatically.
 
 ## Quick Start
 
@@ -98,44 +86,57 @@ final class OrderPlaced extends AbstractAggregateEvent
 
 ### 2. Create an Aggregate Root
 
-Extend the `AggregateRoot` interface to create your domain aggregates:
+Implement the `AggregateRoot` interface using the `AggregateRootTrait`:
 
 ```php
-use Dranzd\Common\EventSourcing\EventSourcedAggregate;
+use Dranzd\Common\EventSourcing\Domain\EventSourcing\AggregateRoot;
+use Dranzd\Common\EventSourcing\Domain\EventSourcing\AggregateRootTrait;
 
-class Order extends EventSourcedAggregate
+class Order implements AggregateRoot
 {
+    use AggregateRootTrait;
+    
     private string $orderId;
     private string $status;
     
-    protected function handleEvent($event): void
+    public function __construct(string $orderId)
     {
-        match (get_class($event)) {
-            OrderPlaced::class => $this->applyOrderPlaced($event),
-            OrderConfirmed::class => $this->applyOrderConfirmed($event),
-            default => null
-        };
+        $this->orderId = $orderId;
     }
     
-    private function applyOrderPlaced(OrderPlaced $event): void
+    public function getAggregateRootUuid(): string
     {
-        $this->orderId = $event->orderId;
-        $this->status = 'placed';
+        return $this->orderId;
     }
     
-    private function applyOrderConfirmed(OrderConfirmed $event): void
+    public function placeOrder(CustomerId $customerId, Money $amount): void
     {
-        $this->status = 'confirmed';
-    }
-    
-    public function placeOrder(string $orderId): void
-    {
-        $this->apply(new OrderPlaced($orderId));
+        $event = OrderPlaced::withAmount(
+            OrderId::fromNative($this->orderId),
+            $customerId,
+            $amount
+        );
+        
+        $this->recordThat($event);
     }
     
     public function confirmOrder(): void
     {
-        $this->apply(new OrderConfirmed($this->orderId));
+        $event = OrderConfirmed::forOrder(OrderId::fromNative($this->orderId));
+        $this->recordThat($event);
+    }
+    
+    // Apply methods are called automatically by the trait
+    protected function applyOnOrderPlaced(OrderPlaced $event): void
+    {
+        $payload = $event->getPayload();
+        $this->orderId = $payload['order_id'];
+        $this->status = 'placed';
+    }
+    
+    protected function applyOnOrderConfirmed(OrderConfirmed $event): void
+    {
+        $this->status = 'confirmed';
     }
 }
 ```
@@ -143,16 +144,19 @@ class Order extends EventSourcedAggregate
 ### Working with Events
 
 ```php
-// Create and apply events
-$order = new Order();
-$order->placeOrder('order-123');
+// Create and record events
+$order = new Order('order-123');
+$order->placeOrder($customerId, $amount);
 $order->confirmOrder();
 
-// Retrieve uncommitted events
-$events = $order->releaseEvents();
+// Retrieve recorded events
+$events = $order->getRecordedEvents();
 
-// Events are cleared after release
-$moreEvents = $order->releaseEvents(); // Returns empty array
+// Pop events (retrieve and clear)
+$events = $order->popRecordedEvents();
+
+// Reconstitute from event history
+$order = Order::reconstituteFromHistory($events);
 ```
 
 ## Architecture
@@ -174,36 +178,6 @@ This library follows **Onion Architecture** principles:
 ```
 
 The core domain logic remains framework-agnostic, with framework-specific implementations in outer layers.
-
-## Framework Integration
-
-### Laravel
-
-```php
-// Service Provider
-use Dranzd\Common\EventSourcing\EventSourcedAggregate;
-
-class EventSourcingServiceProvider extends ServiceProvider
-{
-    public function register(): void
-    {
-        // Register your event store, repositories, etc.
-    }
-}
-```
-
-### Laminas
-
-```php
-// Module configuration
-return [
-    'service_manager' => [
-        'factories' => [
-            // Your event sourcing services
-        ],
-    ],
-];
-```
 
 ## Development
 
@@ -291,21 +265,54 @@ final class OrderPlaced extends AbstractAggregateEvent implements VersionedEvent
 
 ### Metadata Tracking
 
-Convenient methods for causation and correlation:
+Events that extend `AbstractAggregateEvent` automatically include causation, correlation, and actor tracking:
 
 ```php
 $event = OrderPlaced::withAmount($orderId, $customerId, $amount);
 
+// AbstractAggregateEvent includes these traits:
+// - CausationCapableTrait
+// - CorrelationCapableTrait  
+// - ActorCapableTrait
+
 // Add causation (this event was caused by a command)
 $event = $event->withCausationId($command->getMessageUuid());
+$event = $event->withCausationName('PlaceOrderCommand');
 
 // Add correlation (for distributed tracing)
 $event = $event->withCorrelationId($traceId);
 
+// Add actor information
+$event = $event->withActorId($userId);
+$event = $event->withActorName('John Doe');
+
 // Read metadata
-$causationId = $event->causationId();
-$correlationId = $event->correlationId();
+$causationId = $event->getCausationId();
+$correlationId = $event->getCorrelationId();
+$actorId = $event->getActorId();
 $occurredAt = $event->occurredAt();
+$eventId = $event->eventId();
+
+// Access metadata directly
+$value = $event->getMetadataValue('custom_key');
+$hasKey = $event->hasMetadata('custom_key');
+```
+
+For custom events, you can selectively use traits:
+
+```php
+use Dranzd\Common\EventSourcing\Domain\Event\AbstractEvent;
+use Dranzd\Common\EventSourcing\Domain\Message\CausationCapable;
+use Dranzd\Common\EventSourcing\Domain\Message\CausationCapableTrait;
+
+class CustomEvent extends AbstractEvent implements CausationCapable
+{
+    use CausationCapableTrait;
+    
+    const MESSAGE_NAME = 'custom.event';
+    
+    // Now has withCausationId(), getCausationId(), etc.
+}
 ```
 
 ## License
@@ -324,7 +331,11 @@ Contributions are welcome! Please ensure:
 
 ### Recent Updates
 
-- ✅ **Event Versioning System** - Complete versioning support with upcasters
-- ✅ **Convenience Methods** - Added metadata helpers to AbstractEvent
+- ✅ **Comprehensive Test Suite** - 123 tests with 288 assertions covering all core functionality
+- ✅ **Event Versioning System** - Complete versioning support with upcasters and `VersionedEventTrait`
+- ✅ **Trait-Based Capabilities** - Flexible metadata support via `CausationCapableTrait`, `CorrelationCapableTrait`, `ActorCapableTrait`
+- ✅ **Aggregate Root Pattern** - `AggregateRootTrait` with automatic event application via `applyOn{EventName}` methods
+- ✅ **Type Safety** - Full `static` return types for fluent interfaces and method chaining
+- ✅ **Metadata Injectors** - Command-to-Event metadata transfer utilities
 - ✅ **Namespace Migration** - Migrated to `Dranzd\Common\EventSourcing`
 - ✅ **Documentation** - Comprehensive guides and examples
