@@ -74,24 +74,4 @@ abstract class AbstractEvent extends GenericMessage implements Event
     {
         return $this->mergeMetadata([$key => $value]);
     }
-
-    /**
-     * Get causation ID if present
-     * 
-     * @return string|null
-     */
-    public function causationId(): ?string
-    {
-        return $this->metadata('causation_id');
-    }
-
-    /**
-     * Get correlation ID if present
-     * 
-     * @return string|null
-     */
-    public function correlationId(): ?string
-    {
-        return $this->metadata('correlation_id');
-    }
 }

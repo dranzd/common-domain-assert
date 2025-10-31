@@ -113,51 +113,15 @@ final class AbstractEventTest extends TestCase
         $this->assertNotSame($event, $newEvent);
     }
 
-    public function testWithAddedMetadataCanAddCausationId()
-    {
-        $event = new TestEvent();
-        $causationId = 'causation-uuid-123';
-        $newEvent = $event->withAddedMetadata('causation_id', $causationId);
-
-        $this->assertEquals($causationId, $newEvent->metadata('causation_id'));
-        $this->assertEquals($causationId, $newEvent->causationId());
-        $this->assertNotSame($event, $newEvent);
-    }
-
-    public function testWithAddedMetadataCanAddCorrelationId()
-    {
-        $event = new TestEvent();
-        $correlationId = 'correlation-uuid-456';
-        $newEvent = $event->withAddedMetadata('correlation_id', $correlationId);
-
-        $this->assertEquals($correlationId, $newEvent->metadata('correlation_id'));
-        $this->assertEquals($correlationId, $newEvent->correlationId());
-        $this->assertNotSame($event, $newEvent);
-    }
-
-    public function testCausationIdReturnsNullWhenNotSet()
-    {
-        $event = new TestEvent();
-
-        $this->assertNull($event->causationId());
-    }
-
-    public function testCorrelationIdReturnsNullWhenNotSet()
-    {
-        $event = new TestEvent();
-
-        $this->assertNull($event->correlationId());
-    }
-
-    public function testWithAddedMetadataCanBeChainedForCausationAndCorrelation()
+    public function testWithAddedMetadataCanBeChained()
     {
         $event = new TestEvent();
         $newEvent = $event
-            ->withAddedMetadata('causation_id', 'causation-123')
-            ->withAddedMetadata('correlation_id', 'correlation-456');
+            ->withAddedMetadata('key1', 'value1')
+            ->withAddedMetadata('key2', 'value2');
 
-        $this->assertEquals('causation-123', $newEvent->causationId());
-        $this->assertEquals('correlation-456', $newEvent->correlationId());
+        $this->assertEquals('value1', $newEvent->metadata('key1'));
+        $this->assertEquals('value2', $newEvent->metadata('key2'));
     }
 
     public function testExpectedMessageNameUsesConstant()
