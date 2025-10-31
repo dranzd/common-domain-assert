@@ -25,7 +25,7 @@ trait ActorCapableTrait
     /**
      * @return static
      */
-    final public function withActorId(string $id = null): Message
+    final public function withActorId(string $id = null): static
     {
         return $this->withMetadata(
             \array_merge(
@@ -40,7 +40,7 @@ trait ActorCapableTrait
     /**
      * @return static
      */
-    final public function withActorName(string $name = null): Message
+    final public function withActorName(string $name = null): static
     {
         return $this->withMetadata(
             \array_merge(

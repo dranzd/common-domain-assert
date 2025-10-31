@@ -9,7 +9,7 @@ trait PayloadContainerCapableTrait
      */
     private $payload = [];
 
-    public function withPayload(array $payload): Message
+    public function withPayload(array $payload): static
     {
         $clone = clone $this;
 

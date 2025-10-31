@@ -76,28 +76,6 @@ abstract class AbstractEvent extends GenericMessage implements Event
     }
 
     /**
-     * Create a new instance with causation ID metadata
-     * 
-     * @param string $causationId
-     * @return static
-     */
-    public function withCausationId(string $causationId): self
-    {
-        return $this->withAddedMetadata('causation_id', $causationId);
-    }
-
-    /**
-     * Create a new instance with correlation ID metadata
-     * 
-     * @param string $correlationId
-     * @return static
-     */
-    public function withCorrelationId(string $correlationId): self
-    {
-        return $this->withAddedMetadata('correlation_id', $correlationId);
-    }
-
-    /**
      * Get causation ID if present
      * 
      * @return string|null

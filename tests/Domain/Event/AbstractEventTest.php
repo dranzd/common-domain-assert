@@ -113,22 +113,22 @@ final class AbstractEventTest extends TestCase
         $this->assertNotSame($event, $newEvent);
     }
 
-    public function testWithCausationIdAddsMetadata()
+    public function testWithAddedMetadataCanAddCausationId()
     {
         $event = new TestEvent();
         $causationId = 'causation-uuid-123';
-        $newEvent = $event->withCausationId($causationId);
+        $newEvent = $event->withAddedMetadata('causation_id', $causationId);
 
         $this->assertEquals($causationId, $newEvent->metadata('causation_id'));
         $this->assertEquals($causationId, $newEvent->causationId());
         $this->assertNotSame($event, $newEvent);
     }
 
-    public function testWithCorrelationIdAddsMetadata()
+    public function testWithAddedMetadataCanAddCorrelationId()
     {
         $event = new TestEvent();
         $correlationId = 'correlation-uuid-456';
-        $newEvent = $event->withCorrelationId($correlationId);
+        $newEvent = $event->withAddedMetadata('correlation_id', $correlationId);
 
         $this->assertEquals($correlationId, $newEvent->metadata('correlation_id'));
         $this->assertEquals($correlationId, $newEvent->correlationId());
@@ -149,12 +149,12 @@ final class AbstractEventTest extends TestCase
         $this->assertNull($event->correlationId());
     }
 
-    public function testWithCausationIdAndCorrelationIdCanBeChained()
+    public function testWithAddedMetadataCanBeChainedForCausationAndCorrelation()
     {
         $event = new TestEvent();
         $newEvent = $event
-            ->withCausationId('causation-123')
-            ->withCorrelationId('correlation-456');
+            ->withAddedMetadata('causation_id', 'causation-123')
+            ->withAddedMetadata('correlation_id', 'correlation-456');
 
         $this->assertEquals('causation-123', $newEvent->causationId());
         $this->assertEquals('correlation-456', $newEvent->correlationId());

@@ -25,7 +25,7 @@ trait CausationCapableTrait
     /**
      * @return static
      */
-    final public function withCausationId(string $id = null): Message
+    final public function withCausationId(string $id = null): static
     {
         return $this->withMetadata(
             \array_merge(
@@ -40,7 +40,7 @@ trait CausationCapableTrait
     /**
      * @return static
      */
-    final public function withCausationName(string $name = null): Message
+    final public function withCausationName(string $name = null): static
     {
         return $this->withMetadata(
             \array_merge(

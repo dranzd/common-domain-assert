@@ -16,7 +16,7 @@ trait CorrelationCapableTrait
     /**
      * @return static
      */
-    final public function withCorrelationId(string $id = null): Message
+    final public function withCorrelationId(string $id = null): static
     {
         return $this->withMetadata(
             \array_merge(
