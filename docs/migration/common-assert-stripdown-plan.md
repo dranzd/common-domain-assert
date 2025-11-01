@@ -1,8 +1,9 @@
-# Common Assert Library Strip-Down Plan
+# Common Domain Assert Library Strip-Down Plan
 
 ## Document Information
 - **Created**: 2025-11-02
-- **Purpose**: Reference guide for stripping down the monolithic `dranzd/common-event-sourcing` repository into the focused `dranzd/common-assert` library
+- **Purpose**: Reference guide for stripping down the monolithic `dranzd/common-event-sourcing` repository into the focused `dranzd/common-domain-assert` library
+- **Library Focus**: Domain-Driven Design (DDD) domain validation assertions
 - **Target PHP Version**: 8.3+
 - **Target Dependencies**: Latest stable versions
 
@@ -12,17 +13,19 @@
 
 ### Repository Status
 - **Current Package Name**: `dranzd/common-event-sourcing`
-- **Target Package Name**: `dranzd/common-assert`
+- **Target Package Name**: `dranzd/common-domain-assert`
 - **Current Namespace**: `Dranzd\Common\EventSourcing\Domain\Assert`
-- **Target Namespace**: `Dranzd\Common\Assert`
+- **Target Namespace**: `Dranzd\Common\Domain\Assert`
 - **Current PHP Requirement**: ^8.2
 - **Target PHP Requirement**: ^8.3
 
 ### Existing Files
 ```
-/media/dev/dranzd/common-assert/
+/media/dev/dranzd/common-domain-assert/
 ├── src/
-│   └── Assertion.php (wrong namespace, needs fix)
+│   └── Domain/
+│       └── Assert/
+│           └── Assertion.php (wrong namespace, needs fix)
 ├── tests/ (empty, needs tests)
 ├── docs/ (event-sourcing content, needs cleanup)
 ├── composer.json (wrong package name and namespace)
@@ -68,8 +71,8 @@
 **Changes Required**:
 ```json
 {
-    "name": "dranzd/common-assert",  // Changed from common-event-sourcing
-    "description": "Domain assertion utilities extending webmozart/assert with custom validation helpers",
+    "name": "dranzd/common-domain-assert",  // Changed from common-event-sourcing
+    "description": "Domain-Driven Design (DDD) assertion utilities for domain validation, extending webmozart/assert",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -90,12 +93,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Dranzd\\Common\\Assert\\": "src/"  // Changed namespace
+            "Dranzd\\Common\\Domain\\Assert\\": "src/Domain/Assert/"  // Domain-specific namespace
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Dranzd\\Common\\Assert\\Tests\\": "tests/"  // Changed namespace
+            "Dranzd\\Common\\Domain\\Assert\\Tests\\": "tests/Domain/Assert/"  // Domain-specific namespace
         }
     },
     "scripts": {
@@ -123,7 +126,7 @@
 **Priority**: High  
 **Estimated Time**: 5 minutes
 
-**Current Code** (`src/Assertion.php`):
+**Current Code** (`src/Domain/Assert/Assertion.php`):
 ```php
 <?php
 
@@ -152,7 +155,7 @@ class Assertion extends BaseAssertion
 
 **Required Change**:
 ```php
-namespace Dranzd\Common\Assert;  // FIXED
+namespace Dranzd\Common\Domain\Assert;  // FIXED - Keep Domain\Assert for DDD focus
 ```
 
 **Verification**:
@@ -170,11 +173,12 @@ namespace Dranzd\Common\Assert;  // FIXED
 ```markdown
 # Common Assert
 
-A focused assertion library that extends webmozart/assert with custom domain validation helpers.
+A Domain-Driven Design (DDD) assertion library for domain validation, extending webmozart/assert with domain-specific validation helpers.
 
 ## Features
+- Domain-specific assertions for DDD applications
 - Extends webmozart/assert with all its powerful assertions
-- Custom datetime format validation
+- Custom domain validation (datetime formats, etc.)
 - Framework-agnostic
 - PHP 8.3+ with strict typing
 - Zero dependencies beyond webmozart/assert
@@ -216,15 +220,15 @@ MIT
 **Priority**: High  
 **Estimated Time**: 45 minutes
 
-**New File**: `tests/AssertionTest.php`
+**New File**: `tests/Domain/Assert/AssertionTest.php`
 
 **Test Coverage Required**:
 ```php
 <?php
 
-namespace Dranzd\Common\Assert\Tests;
+namespace Dranzd\Common\Domain\Assert\Tests;
 
-use Dranzd\Common\Assert\Assertion;
+use Dranzd\Common\Domain\Assert\Assertion;
 use PHPUnit\Framework\TestCase;
 use InvalidArgumentException;
 
@@ -280,7 +284,7 @@ class AssertionTest extends TestCase
          colors="true"
          cacheDirectory=".phpunit.cache">
     <testsuites>
-        <testsuite name="Common Assert Tests">
+        <testsuite name="Common Domain Assert Tests">
             <directory>./tests</directory>
         </testsuite>
     </testsuites>
@@ -470,14 +474,14 @@ SOFTWARE.
 5. **Manual Verification**:
    - [ ] No references to "event-sourcing" in code
    - [ ] No references to "event-sourcing" in docs (except archives)
-   - [ ] All namespaces use `Dranzd\Common\Assert`
-   - [ ] Package name is `dranzd/common-assert` everywhere
+   - [ ] All namespaces use `Dranzd\Common\Domain\Assert`
+   - [ ] Package name is `dranzd/common-domain-assert` everywhere
    - [ ] README accurately describes the library
 
 6. **Test Installation**:
    ```bash
    # In a separate test project
-   composer require dranzd/common-assert:@dev
+   composer require dranzd/common-domain-assert:@dev
    ```
    - [ ] Library can be installed
    - [ ] Autoloading works correctly
@@ -536,13 +540,13 @@ SOFTWARE.
 ### 2. Additional Assertions
 **Question**: Should we add more custom assertion methods beyond just `datetime()`?
 
-**Potential Additions**:
-- `uuid()` - Validate UUID format
-- `email()` - Validate email format
-- `url()` - Validate URL format
-- `json()` - Validate JSON string
-- `phoneNumber()` - Validate phone number format
-- `ipAddress()` - Validate IP address
+**Potential Domain-Specific Additions**:
+- `uuid()` - Validate UUID format (common for entity IDs)
+- `aggregateId()` - Validate aggregate identifier format
+- `valueObject()` - Validate value object instances
+- `entityId()` - Validate entity identifier
+- `domainEvent()` - Validate domain event structure
+- `money()` - Validate money/currency values
 
 **Recommendation**: Start minimal, add based on actual needs
 
@@ -599,8 +603,8 @@ Execute tasks in this order to minimize conflicts:
 
 ## Success Criteria
 
-- ✅ Package name is `dranzd/common-assert`
-- ✅ Namespace is `Dranzd\Common\Assert` throughout
+- ✅ Package name is `dranzd/common-domain-assert`
+- ✅ Namespace is `Dranzd\Common\Domain\Assert` throughout (domain-specific)
 - ✅ PHP 8.3+ requirement enforced
 - ✅ All dependencies are latest stable versions
 - ✅ All tests pass with 100% coverage
@@ -628,9 +632,9 @@ After completing all tasks:
    - Configure GitHub webhook for auto-updates
 
 3. **Update Other Libraries**:
-   - Update `dranzd/common-valueobject` to depend on this
-   - Update `dranzd/common-messaging` to depend on this
-   - Update `dranzd/common-event-sourcing` to depend on this
+   - Update `dranzd/common-valueobject` to depend on `dranzd/common-domain-assert`
+   - Update `dranzd/common-messaging` to depend on `dranzd/common-domain-assert`
+   - Update `dranzd/common-event-sourcing` to depend on `dranzd/common-domain-assert`
 
 4. **Announce**:
    - Update any project documentation
