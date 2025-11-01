@@ -1,6 +1,6 @@
 <?php
 
-namespace Dranzd\Common\EventSourcing\Domain\Assert;
+namespace Dranzd\Common\Domain\Assert;
 
 use Webmozart\Assert\Assert as BaseAssertion;
 
