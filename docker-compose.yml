@@ -3,7 +3,7 @@ version: '3.9'
 services:
   php:
     build: .
-    container_name: common-event-sourcing
+    container_name: common-domain-assert
     volumes:
       - .:/app
     working_dir: /app
