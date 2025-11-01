@@ -1,183 +1,139 @@
-# Common Event Sourcing
+# Common Domain Assert
 
-A framework-agnostic event sourcing library that provides common abstractions and utilities for building event-sourced applications using Domain-Driven Design (DDD) principles and Onion Architecture.
+A Domain-Driven Design (DDD) assertion library for domain validation, extending [webmozart/assert](https://github.com/webmozart/assert) with domain-specific validation helpers.
 
 ## Features
 
-- **Event Sourcing Primitives**: Base classes and interfaces for event-sourced aggregates
-- **CQRS Support**: Command, Event, and Query message types with generic infrastructure
-- **Event Versioning**: Built-in support for event schema evolution with upcasters and VersionedEventTrait
-- **Aggregate Root Pattern**: AggregateRootTrait with automatic event replay and version management
-- **Flexible Metadata**: Trait-based causation, correlation, and actor tracking
-- **Metadata Injectors**: Utilities to transfer metadata from commands to events
-- **Named Constructor Pattern**: Expressive, domain-focused event creation
-- **DDD Building Blocks**: Domain events, aggregates, and value objects
-- **Framework Agnostic**: Clean separation of concerns with no framework dependencies
-- **Type Safety**: Full PHP 8.1+ type hints with static return types for fluent interfaces
-- **Comprehensive Tests**: 123 tests with 288 assertions ensuring reliability
+- **Domain-Specific Assertions**: Custom validation methods for DDD domain layer
+- **Extends webmozart/assert**: Inherits all powerful assertions from webmozart/assert
+- **DateTime Validation**: Built-in format validation for domain datetime values
+- **Framework Agnostic**: Clean, reusable assertions with no framework dependencies
+- **Type Safety**: Full PHP 8.3+ type hints for strict validation
+- **Zero Dependencies**: Only depends on webmozart/assert
+- **DDD-Focused**: Designed specifically for domain model validation
 
 ## Requirements
 
-- PHP 8.1 or higher
-- ext-json
-- ramsey/uuid ^4.7
+- PHP 8.3 or higher
 - webmozart/assert ^1.11
 
 ## Installation
 
 ```bash
-composer require dranzd/common-event-sourcing
+composer require dranzd/common-domain-assert
 ```
-
-The required dependencies (`ramsey/uuid` and `webmozart/assert`) will be installed automatically.
 
 ## Quick Start
 
-### 1. Create a Domain Event
+### Using Built-in Assertions from webmozart/assert
+
+Since `Assertion` extends `webmozart/assert`, you have access to all its methods:
 
 ```php
-use Dranzd\Common\EventSourcing\Domain\EventSourcing\AbstractAggregateEvent;
-use Dranzd\Common\EventSourcing\Domain\EventSourcing\AggregateEventWithPrivateConstructorTrait;
+use Dranzd\Common\Domain\Assert\Assertion;
 
-final class OrderPlaced extends AbstractAggregateEvent
-{
-    use AggregateEventWithPrivateConstructorTrait;
-    
-    const MESSAGE_NAME = 'order.order.placed';
-    
-    private OrderId $orderId;
-    private CustomerId $customerId;
-    private Money $totalAmount;
-    
-    // Named constructor - expressive and domain-focused
-    public static function withAmount(
-        OrderId $orderId,
-        CustomerId $customerId,
-        Money $totalAmount
-    ): self {
-        $instance = new self();
-        $instance->orderId = $orderId;
-        $instance->customerId = $customerId;
-        $instance->totalAmount = $totalAmount;
-        return $instance;
-    }
-    
-    public function getPayload(): array
-    {
-        return [
-            'order_id' => $this->orderId->toNative(),
-            'customer_id' => $this->customerId->toNative(),
-            'total_amount' => $this->totalAmount->toArray(),
-        ];
-    }
-    
-    protected function setPayload(array $payload): void
-    {
-        if (empty($payload)) {
-            return;
-        }
-        
-        $this->orderId = OrderId::fromNative($payload['order_id']);
-        $this->customerId = CustomerId::fromNative($payload['customer_id']);
-        $this->totalAmount = Money::fromArray($payload['total_amount']);
-    }
-}
+// String assertions
+Assertion::string($value, 'Value must be a string');
+Assertion::notEmpty($value, 'Value cannot be empty');
+Assertion::length($value, 10, 'Value must be exactly 10 characters');
+
+// Numeric assertions
+Assertion::integer($value, 'Value must be an integer');
+Assertion::greaterThan($value, 0, 'Value must be positive');
+
+// Array assertions
+Assertion::isArray($value, 'Value must be an array');
+Assertion::keyExists($array, 'key', 'Array must contain key');
+
+// Type assertions
+Assertion::isInstanceOf($object, User::class, 'Must be a User instance');
 ```
 
-### 2. Create an Aggregate Root
+### Custom Domain Assertions
 
-Implement the `AggregateRoot` interface using the `AggregateRootTrait`:
+#### DateTime Format Validation
+
+Validate datetime strings against specific formats in your domain:
 
 ```php
-use Dranzd\Common\EventSourcing\Domain\EventSourcing\AggregateRoot;
-use Dranzd\Common\EventSourcing\Domain\EventSourcing\AggregateRootTrait;
+use Dranzd\Common\Domain\Assert\Assertion;
 
-class Order implements AggregateRoot
-{
-    use AggregateRootTrait;
-    
-    private string $orderId;
-    private string $status;
-    
-    public function __construct(string $orderId)
-    {
-        $this->orderId = $orderId;
-    }
-    
-    public function getAggregateRootUuid(): string
-    {
-        return $this->orderId;
-    }
-    
-    public function placeOrder(CustomerId $customerId, Money $amount): void
-    {
-        $event = OrderPlaced::withAmount(
-            OrderId::fromNative($this->orderId),
-            $customerId,
-            $amount
-        );
-        
-        $this->recordThat($event);
-    }
-    
-    public function confirmOrder(): void
-    {
-        $event = OrderConfirmed::forOrder(OrderId::fromNative($this->orderId));
-        $this->recordThat($event);
-    }
-    
-    // Apply methods are called automatically by the trait
-    protected function applyOnOrderPlaced(OrderPlaced $event): void
-    {
-        $payload = $event->getPayload();
-        $this->orderId = $payload['order_id'];
-        $this->status = 'placed';
-    }
-    
-    protected function applyOnOrderConfirmed(OrderConfirmed $event): void
-    {
-        $this->status = 'confirmed';
-    }
-}
+// Validate datetime format
+Assertion::datetime('2025-11-02', 'Y-m-d');
+// Passes 
+
+Assertion::datetime('invalid-date', 'Y-m-d');
+// Throws InvalidArgumentException 
+
+// Custom error message
+Assertion::datetime(
+    $dateString, 
+    'Y-m-d H:i:s', 
+    'Order date must be in format Y-m-d H:i:s'
+);
 ```
 
-### Working with Events
+### Usage in Domain Models
+
+Use assertions to validate domain invariants:
 
 ```php
-// Create and record events
-$order = new Order('order-123');
-$order->placeOrder($customerId, $amount);
-$order->confirmOrder();
+use Dranzd\Common\Domain\Assert\Assertion;
 
-// Retrieve recorded events
-$events = $order->getRecordedEvents();
+class OrderDate
+{
+    private string $date;
 
-// Pop events (retrieve and clear)
-$events = $order->popRecordedEvents();
+    public function __construct(string $date)
+    {
+        Assertion::datetime($date, 'Y-m-d', 'Order date must be in Y-m-d format');
+        $this->date = $date;
+    }
 
-// Reconstitute from event history
-$order = Order::reconstituteFromHistory($events);
+    public function toString(): string
+    {
+        return $this->date;
+    }
+}
+
+class Order
+{
+    private OrderId $id;
+    private OrderDate $orderDate;
+    private Money $amount;
+
+    public function __construct(OrderId $id, OrderDate $orderDate, Money $amount)
+    {
+        Assertion::isInstanceOf($id, OrderId::class);
+        Assertion::isInstanceOf($orderDate, OrderDate::class);
+        Assertion::isInstanceOf($amount, Money::class);
+        
+        $this->id = $id;
+        $this->orderDate = $orderDate;
+        $this->amount = $amount;
+    }
+}
 ```
 
 ## Architecture
 
-This library follows **Onion Architecture** principles:
+This library is designed for the **Domain Layer** in DDD applications:
 
 ```
 ┌─────────────────────────────────────┐
 │   Infrastructure Layer              │
-│   (Laravel/Laminas Adapters)        │
+│   (Repositories, External Services) │
 ├─────────────────────────────────────┤
 │   Application Layer                 │
 │   (Use Cases, Command Handlers)     │
 ├─────────────────────────────────────┤
 │   Domain Layer                      │
-│   (Aggregates, Events, Value Objs)  │
-│   ← This Library                    │
+│   (Entities, Value Objects)         │
+│   ← This Library validates here     │
 └─────────────────────────────────────┘
 ```
 
-The core domain logic remains framework-agnostic, with framework-specific implementations in outer layers.
+Use assertions to enforce domain invariants and validate value objects.
 
 ## Development
 
@@ -216,104 +172,39 @@ docker-compose run --rm php ./vendor/bin/phpunit
 docker-compose run --rm php bash
 ```
 
+## Available Assertions
+
+### From webmozart/assert
+
+All assertions from [webmozart/assert](https://github.com/webmozart/assert#assertions) are available:
+
+- **Type Assertions**: `string()`, `integer()`, `float()`, `boolean()`, `array()`, `object()`, `resource()`, `scalar()`
+- **Comparison**: `eq()`, `notEq()`, `same()`, `notSame()`, `greaterThan()`, `lessThan()`, `range()`
+- **String**: `startsWith()`, `endsWith()`, `contains()`, `length()`, `minLength()`, `maxLength()`, `regex()`
+- **Array**: `keyExists()`, `keyNotExists()`, `count()`, `minCount()`, `maxCount()`
+- **Object**: `isInstanceOf()`, `notInstanceOf()`, `propertyExists()`, `methodExists()`
+- **Null**: `null()`, `notNull()`, `true()`, `false()`, `isEmpty()`, `notEmpty()`
+
+### Custom Domain Assertions
+
+#### `datetime($value, $format, $message = '')`
+
+Validates that a string matches a specific datetime format.
+
+```php
+Assertion::datetime('2025-11-02', 'Y-m-d');
+Assertion::datetime('2025-11-02 14:30:00', 'Y-m-d H:i:s');
+Assertion::datetime($orderDate, 'Y-m-d', 'Order date must be in Y-m-d format');
+```
+
 ## Design Principles
 
-- **Domain-Driven Design**: Aggregates, entities, value objects, and domain events
-- **Event Sourcing**: State changes captured as immutable events
-- **CQRS Ready**: Separate command and query models
-- **Framework Agnostic**: Core domain logic independent of infrastructure
-- **Testability**: Easy to unit test without framework dependencies
-- **Named Constructors**: Expressive event creation enforced by design
-- **Value Object Validation**: Type safety through domain objects
-- **Event Versioning**: Schema evolution without data migration
-
-## Documentation
-
-- **[Event Design Patterns](docs/guides/event-patterns.md)** - Comprehensive guide to event patterns
-- **[Event Versioning Example](docs/examples/event-versioning-example.md)** - Complete versioning guide
-- **[Domain Event Design Review](docs/reviews/domain-event-design-review.md)** - Design analysis
-- **[Namespace Migration Notes](docs/migration/namespace-migration.md)** - Migration documentation
-
-## Key Features Explained
-
-### Named Constructor Pattern
-
-Events use static factory methods for creation, making code more expressive:
-
-```php
-// ✅ Expressive - reads like domain language
-$event = OrderPlaced::withAmount($orderId, $customerId, $totalAmount);
-
-// ❌ Not allowed - constructor is private
-$event = new OrderPlaced($orderId, $customerId, $totalAmount);
-```
-
-### Event Versioning
-
-Built-in support for event schema evolution:
-
-```php
-final class OrderPlaced extends AbstractAggregateEvent implements VersionedEvent
-{
-    use VersionedEventTrait;
-    
-    const CURRENT_VERSION = 2;  // Increment when schema changes
-    
-    // Upcasters handle old event versions automatically
-}
-```
-
-### Metadata Tracking
-
-Events that extend `AbstractAggregateEvent` automatically include causation, correlation, and actor tracking:
-
-```php
-$event = OrderPlaced::withAmount($orderId, $customerId, $amount);
-
-// AbstractAggregateEvent includes these traits:
-// - CausationCapableTrait
-// - CorrelationCapableTrait  
-// - ActorCapableTrait
-
-// Add causation (this event was caused by a command)
-$event = $event->withCausationId($command->getMessageUuid());
-$event = $event->withCausationName('PlaceOrderCommand');
-
-// Add correlation (for distributed tracing)
-$event = $event->withCorrelationId($traceId);
-
-// Add actor information
-$event = $event->withActorId($userId);
-$event = $event->withActorName('John Doe');
-
-// Read metadata
-$causationId = $event->getCausationId();
-$correlationId = $event->getCorrelationId();
-$actorId = $event->getActorId();
-$occurredAt = $event->occurredAt();
-$eventId = $event->eventId();
-
-// Access metadata directly
-$value = $event->getMetadataValue('custom_key');
-$hasKey = $event->hasMetadata('custom_key');
-```
-
-For custom events, you can selectively use traits:
-
-```php
-use Dranzd\Common\EventSourcing\Domain\Event\AbstractEvent;
-use Dranzd\Common\EventSourcing\Domain\Message\CausationCapable;
-use Dranzd\Common\EventSourcing\Domain\Message\CausationCapableTrait;
-
-class CustomEvent extends AbstractEvent implements CausationCapable
-{
-    use CausationCapableTrait;
-    
-    const MESSAGE_NAME = 'custom.event';
-    
-    // Now has withCausationId(), getCausationId(), etc.
-}
-```
+- **Domain-Driven Design**: Focused on domain layer validation
+- **Fail Fast**: Validate invariants at construction time
+- **Explicit Validation**: Clear, expressive assertion methods
+- **Framework Agnostic**: No framework dependencies
+- **Type Safety**: Full PHP 8.3+ type hints
+- **Extensible**: Easy to add custom domain assertions
 
 ## License
 
@@ -324,18 +215,41 @@ MIT
 Contributions are welcome! Please ensure:
 - All tests pass
 - Code follows PSR-12 standards
-- PHPStan analysis passes at level 8 or higher
+- PHPStan analysis passes at level 9
 - New features include tests and documentation
 
-## Changelog
+## Extending with Custom Assertions
 
-### Recent Updates
+You can extend the `Assertion` class to add your own domain-specific validations:
 
-- ✅ **Comprehensive Test Suite** - 123 tests with 288 assertions covering all core functionality
-- ✅ **Event Versioning System** - Complete versioning support with upcasters and `VersionedEventTrait`
-- ✅ **Trait-Based Capabilities** - Flexible metadata support via `CausationCapableTrait`, `CorrelationCapableTrait`, `ActorCapableTrait`
-- ✅ **Aggregate Root Pattern** - `AggregateRootTrait` with automatic event application via `applyOn{EventName}` methods
-- ✅ **Type Safety** - Full `static` return types for fluent interfaces and method chaining
-- ✅ **Metadata Injectors** - Command-to-Event metadata transfer utilities
-- ✅ **Namespace Migration** - Migrated to `Dranzd\Common\EventSourcing`
-- ✅ **Documentation** - Comprehensive guides and examples
+```php
+namespace YourApp\Domain\Assert;
+
+use Dranzd\Common\Domain\Assert\Assertion as BaseAssertion;
+
+class Assertion extends BaseAssertion
+{
+    public static function uuid(string $value, string $message = ''): void
+    {
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $value)) {
+            static::reportInvalidArgument(
+                $message ?: 'Expected a valid UUID'
+            );
+        }
+    }
+    
+    public static function aggregateId(string $value, string $message = ''): void
+    {
+        static::uuid($value, $message ?: 'Expected a valid aggregate ID');
+    }
+}
+```
+
+## Related Libraries
+
+This library is part of the `dranzd/common-*` DDD toolkit:
+
+- **dranzd/common-domain-assert** - Domain assertion utilities (this library)
+- **dranzd/common-valueobject** - Value object base classes
+- **dranzd/common-messaging** - Message primitives for CQRS
+- **dranzd/common-event-sourcing** - Event sourcing infrastructure
