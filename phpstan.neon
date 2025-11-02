@@ -1,0 +1,9 @@
+parameters:
+    level: 9
+    paths:
+        - src
+        - tests
+    ignoreErrors:
+        # Ignore "always true" assertions in tests - these are intentional test validations
+        - '#Call to (method|static method|function) .* will always evaluate to true#'
+        - '#Call to (method|static method|function) .* will always evaluate to false#'
