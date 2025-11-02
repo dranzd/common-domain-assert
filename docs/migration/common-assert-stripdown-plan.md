@@ -363,7 +363,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.2', '8.3']  # Already has 8.3 ✓
+        php-version: ['8.3', '8.4']  # Test on PHP 8.3 and 8.4
     name: PHP ${{ matrix.php-version }} Tests
     steps:
     - uses: actions/checkout@v4
@@ -386,7 +386,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.3']  # Remove 8.2 since we require 8.3+
+        php-version: ['8.3', '8.4']  # Test on PHP 8.3+ versions
     name: PHP ${{ matrix.php-version }} Tests
     steps:
     - uses: actions/checkout@v4
@@ -405,7 +405,7 @@ jobs:
 ```
 
 **Verification**:
-- [ ] PHP version matrix updated (remove 8.2)
+- [ ] PHP version matrix updated (8.3, 8.4)
 - [ ] Consider adding PHPStan and code style checks
 - [ ] Workflow name is appropriate
 

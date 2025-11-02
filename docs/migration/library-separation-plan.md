@@ -311,7 +311,7 @@ common-event-sourcing (remaining):
 **Tasks:**
 - [ ] Verify composer.json for each library
 - [ ] Ensure proper PSR-4 autoloading
-- [ ] Set correct minimum PHP version (8.2+)
+- [ ] Set correct minimum PHP version (8.3+)
 - [ ] Add proper version constraints for dependencies
 - [ ] Configure scripts (test, phpstan, cs-check, cs-fix)
 - [ ] Add keywords for Packagist discoverability
@@ -326,7 +326,7 @@ common-event-sourcing (remaining):
     "license": "MIT",
     "minimum-stability": "stable",
     "require": {
-        "php": "^8.2"
+        "php": "^8.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0",
