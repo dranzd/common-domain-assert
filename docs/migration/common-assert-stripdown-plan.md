@@ -31,46 +31,46 @@
 - **PHP Version**: ^8.3 ✅
 - **Description**: Domain-Driven Design (DDD) assertion utilities for domain validation
 
-### Existing Files
+### Final Structure
 ```
 /media/dev/dranzd/common-domain-assert/
 ├── src/
 │   └── Domain/
 │       └── Assert/
-│           └── Assertion.php (wrong namespace, needs fix)
-├── tests/ (empty, needs tests)
-├── docs/ (event-sourcing content, needs cleanup)
-├── composer.json (wrong package name and namespace)
-├── README.md (describes event-sourcing, needs rewrite)
-├── LICENSE (empty, needs MIT license content)
-├── phpunit.xml (wrong test suite name)
-├── .github/workflows/php.yml (already has PHP 8.3 ✓)
-├── Dockerfile
-└── docker-compose.yml
+│           └── Assertion.php ✅
+├── tests/
+│   └── Domain/
+│       └── Assert/
+│           └── AssertionTest.php ✅
+├── docs/
+│   ├── README.md ✅
+│   ├── guides/
+│   │   ├── usage-guide.md ✅
+│   │   └── custom-assertions-guide.md ✅
+│   └── migration/
+│       ├── library-separation-plan.md ✅
+│       └── common-assert-stripdown-plan.md ✅
+├── .github/workflows/php.yml ✅
+├── composer.json ✅
+├── phpunit.xml ✅
+├── LICENSE ✅
+├── README.md ✅
+├── Dockerfile ✅
+└── docker-compose.yml ✅
 ```
 
-### Current Dependencies
+### Final Dependencies
 ```json
 "require": {
-    "php": "^8.2",
-    "ext-json": "*",
-    "ramsey/uuid": "^4.7",      // NOT NEEDED - Remove
-    "webmozart/assert": "^1.11"  // KEEP
+    "php": "^8.3",
+    "webmozart/assert": "^1.11"
+},
+"require-dev": {
+    "phpunit/phpunit": "^11.0",
+    "phpstan/phpstan": "^2.0",
+    "squizlabs/php_codesniffer": "^3.10"
 }
 ```
-
----
-
-## Latest Versions (2024)
-
-### Production Dependencies
-- **PHP**: ^8.3
-- **webmozart/assert**: ^1.11 (latest stable)
-
-### Development Dependencies
-- **PHPUnit**: ^11.0 (latest for PHP 8.3+)
-- **PHPStan**: ^2.0 (latest stable)
-- **PHP_CodeSniffer**: ^3.10 (latest stable)
 
 ---
 

@@ -245,9 +245,16 @@ class Assertion extends BaseAssertion
 }
 ```
 
+## Documentation
+
+For comprehensive guides and examples:
+- **[Usage Guide](docs/guides/usage-guide.md)** - Detailed usage patterns and best practices
+- **[Custom Assertions Guide](docs/guides/custom-assertions-guide.md)** - Creating domain-specific validations
+- **[Documentation Hub](docs/README.md)** - Complete documentation index
+
 ## Related Libraries
 
-This library is part of the `dranzd/common-*` DDD toolkit:
+Part of the `dranzd/common-*` DDD toolkit:
 
 - **dranzd/common-domain-assert** - Domain assertion utilities (this library)
 - **dranzd/common-valueobject** - Value object base classes
