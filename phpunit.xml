@@ -6,8 +6,7 @@
          cacheDirectory=".phpunit.cache"
          failOnWarning="true"
          failOnRisky="true"
-         beStrictAboutOutputDuringTests="true"
-         beStrictAboutTodoAnnotatedTests="true">
+         beStrictAboutOutputDuringTests="true">
     <testsuites>
         <testsuite name="Common Domain Assert Tests">
             <directory>./tests</directory>
