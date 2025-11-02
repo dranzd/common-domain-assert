@@ -137,29 +137,53 @@ Use assertions to enforce domain invariants and validate value objects.
 
 ## Development
 
-### Running Tests
+### Quick Start with Utils Script
+
+The `utils` script provides a Laravel Sail-like experience for managing Docker:
+
+```bash
+# Run all quality checks (tests, PHPStan, code style)
+./utils quality
+
+# Run tests
+./utils test
+
+# Run PHPStan
+./utils phpstan
+
+# Check/fix code style
+./utils cs-check
+./utils cs-fix
+
+# Composer commands
+./utils install
+./utils update
+./utils composer require package/name
+
+# Docker management
+./utils up
+./utils down
+./utils build
+./utils rebuild
+
+# Shell access
+./utils shell
+./utils root-shell
+
+# See all available commands
+./utils
+```
+
+### Using Composer Directly
 
 ```bash
 composer test
-```
-
-### Static Analysis
-
-```bash
 composer phpstan
-```
-
-### Code Style
-
-```bash
-# Check code style
 composer cs-check
-
-# Fix code style automatically
 composer cs-fix
 ```
 
-### Using Docker
+### Using Docker Manually
 
 ```bash
 # Build the container
