@@ -59,51 +59,69 @@ function display_help {
     exit 0
 }
 
+# Function to ensure container is running
+function ensure_container_running {
+    if ! $COMPOSE ps | grep -q "Up"; then
+        echo "${YELLOW}Starting containers...${NC}"
+        $COMPOSE up -d
+    fi
+}
+
 # Proxy PHP commands to the container
 if [ "$1" == "php" ]; then
+    ensure_container_running
     shift 1
-    $COMPOSE run --rm php php "$@"
+    $COMPOSE exec php php "$@"
 
 # Proxy Composer commands to the container
 elif [ "$1" == "composer" ]; then
+    ensure_container_running
     shift 1
-    $COMPOSE run --rm php composer "$@"
+    $COMPOSE exec php composer "$@"
 
 # Composer shortcuts
 elif [ "$1" == "install" ]; then
-    $COMPOSE run --rm php composer install
+    ensure_container_running
+    $COMPOSE exec php composer install
 
 elif [ "$1" == "update" ]; then
-    $COMPOSE run --rm php composer update
+    ensure_container_running
+    $COMPOSE exec php composer update
 
 elif [ "$1" == "dump-autoload" ]; then
-    $COMPOSE run --rm php composer dump-autoload
+    ensure_container_running
+    $COMPOSE exec php composer dump-autoload
 
 # Testing commands
 elif [ "$1" == "test" ]; then
+    ensure_container_running
     shift 1
-    $COMPOSE run --rm php composer test "$@"
+    $COMPOSE exec php composer test "$@"
 
 elif [ "$1" == "phpstan" ]; then
-    $COMPOSE run --rm php composer phpstan
+    ensure_container_running
+    $COMPOSE exec php composer phpstan
 
 elif [ "$1" == "cs-check" ]; then
-    $COMPOSE run --rm php composer cs-check
+    ensure_container_running
+    $COMPOSE exec php composer cs-check
 
 elif [ "$1" == "cs-fix" ]; then
-    $COMPOSE run --rm php composer cs-fix
+    ensure_container_running
+    $COMPOSE exec php composer cs-fix
 
 elif [ "$1" == "quality" ]; then
+    ensure_container_running
     echo "${YELLOW}Running quality checks...${NC}"
     echo
     echo "${GREEN}1. Running tests...${NC}"
-    $COMPOSE run --rm php composer test
+    $COMPOSE exec php composer test
     echo
     echo "${GREEN}2. Running PHPStan...${NC}"
-    $COMPOSE run --rm php composer phpstan
+    $COMPOSE exec php composer phpstan
     echo
     echo "${GREEN}3. Checking code style...${NC}"
-    $COMPOSE run --rm php composer cs-check
+    $COMPOSE exec php composer cs-check
     echo
     echo "${GREEN}✅ Quality checks complete!${NC}"
 
@@ -141,15 +159,18 @@ elif [ "$1" == "logs" ]; then
 
 # Shell commands
 elif [ "$1" == "shell" ] || [ "$1" == "bash" ]; then
-    $COMPOSE run --rm php bash
+    ensure_container_running
+    $COMPOSE exec php bash
 
 elif [ "$1" == "root-shell" ]; then
-    $COMPOSE run --rm -u root php bash
+    ensure_container_running
+    $COMPOSE exec -u root php bash
 
 # Execute arbitrary commands
 elif [ "$1" == "exec" ]; then
+    ensure_container_running
     shift 1
-    $COMPOSE run --rm php "$@"
+    $COMPOSE exec php "$@"
 
 # Display help
 else
