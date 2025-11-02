@@ -13,6 +13,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /app
 
+# Configure git to trust the /app directory (fixes ownership warnings)
+RUN git config --global --add safe.directory /app
+
 # Copy project files
 COPY . .
 
