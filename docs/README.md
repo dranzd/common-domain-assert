@@ -31,7 +31,7 @@ Welcome to the documentation for `dranzd/common-domain-assert` - a Domain-Driven
 - ✅ **DateTime Validation** - Built-in format validation
 - ✅ **Extensible** - Easy to add custom domain assertions
 - ✅ **Type Safe** - Full PHP 8.3+ type hints
-- ✅ **Zero Dependencies** - Only webmozart/assert required
+- ✅ **Minimal Dependencies** - Only webmozart/assert required
 
 ---
 

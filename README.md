@@ -9,7 +9,7 @@ A Domain-Driven Design (DDD) assertion library for domain validation, extending 
 - **DateTime Validation**: Built-in format validation for domain datetime values
 - **Framework Agnostic**: Clean, reusable assertions with no framework dependencies
 - **Type Safety**: Full PHP 8.3+ type hints for strict validation
-- **Zero Dependencies**: Only depends on webmozart/assert
+- **Minimal Dependencies**: Only depends on webmozart/assert
 - **DDD-Focused**: Designed specifically for domain model validation
 
 ## Requirements
