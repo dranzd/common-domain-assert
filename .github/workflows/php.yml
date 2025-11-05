@@ -2,44 +2,49 @@ name: PHP Tests
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.3', '8.4']
+        php-version: ["8.3", "8.4"]
       fail-fast: false
     name: PHP ${{ matrix.php-version }} Tests
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-version }}
-        coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: json
+          coverage: none
 
-    - name: Validate composer.json
-      run: composer validate --strict
+      - name: Validate composer.json
+        run: composer validate --strict
 
-    - name: Cache Composer dependencies
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-${{ matrix.php-version }}-
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php-version }}-
 
-    - name: Install dependencies
-      run: composer install --no-progress --prefer-dist --no-interaction
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction
 
-    - name: Run tests
-      run: composer test
+      - name: Run tests
+        run: composer test
 
-    - name: Run PHPStan
-      run: composer phpstan
+      - name: Run PHPStan
+        run: composer phpstan
 
-    - name: Check code style
-      run: composer cs-check
+      - name: Check code style
+        run: composer cs-check

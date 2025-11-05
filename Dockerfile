@@ -10,18 +10,17 @@ RUN apt-get update && apt-get install -y \
 # Install Composer globally
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
-WORKDIR /app
-
 # Configure git to trust the /app directory (fixes ownership warnings)
 RUN git config --global --add safe.directory /app
+
+# Set working directory
+WORKDIR /app
 
 # Copy project files
 COPY . .
 
 # Install dependencies
-RUN composer install --no-interaction --prefer-dist
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 # Default command (run tests)
-CMD ["./vendor/bin/phpunit", "--testdox"]
-
+CMD ["tail", "-f", "/dev/null"]
