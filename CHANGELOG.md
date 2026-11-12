@@ -9,23 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-11-12
 
-First public release. `Assertion` and `datetime()` behave exactly as in 1.0.0.
+First public release. `Assertion` keeps its API, and `datetime()` accepts and rejects the same values as in 1.0.0, with the one fix below.
 
 ### Added
 
-- `@method` annotations for `nullOrDatetime()`, `allDatetime()` and `allNullOrDatetime()`, so static
-  analysis knows the prefixed variants that already worked at runtime.
-- A test suite that pins `datetime()` and shows how to extend `Assertion`, PHPStan at max level,
-  and CI on PHP 8.3, 8.4 and 8.5.
+- `@method` annotations for `nullOrDatetime()`, `allDatetime()` and `allNullOrDatetime()`, so static analysis knows the prefixed variants that already worked at runtime.
 - A release workflow, contributor guide and security policy.
 
 ### Changed
 
+- The test suite is rewritten and now shows how to extend `Assertion`. PHPStan runs at max level without ignored errors, and CI also covers PHP 8.5.
 - The source file declares `strict_types`. This does not affect callers.
-- The `dev-master` branch alias is `1.x-dev` (was `1.0.x-dev`). Requirements such as `^1.0` and
-  `dev-master` resolve as before.
+- The `dev-master` branch alias is `1.x-dev`. Requirements such as `^1.0` and `dev-master` resolve as before.
 - The installed package no longer contains the tests and development files.
 - Documentation is reduced to a README that covers usage and extension.
+- When a value does not parse, `reportInvalidArgument()` is called once. It used to be called twice, which only mattered to a subclass whose override returned instead of throwing.
+
+### Fixed
+
+- `datetime()` rejects a value containing a NUL byte with the usual assertion exception. It used to let a `ValueError` from the date parser escape.
 
 ## [1.0.0] - 2026-06-19
 

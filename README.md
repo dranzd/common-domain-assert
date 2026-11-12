@@ -56,10 +56,17 @@ Assertion::datetime('tomorrow', 'Y-m-d', 'The delivery date must be written as %
 // throws: The delivery date must be written as Y-m-d.
 ```
 
-The format is one accepted by `DateTime::createFromFormat()`. An out-of-range field in a complete
-date or time is rejected: month 13, 29 February outside a leap year, hour 25. The parser is otherwise
-lenient: it does not insist on zero padding, so `2025-1-5` passes for `Y-m-d`, and it does not check a
-weekday name against the date.
+The format is one accepted by `DateTime::createFromFormat()`. A month, day, hour, minute or second
+that is out of range is rejected when the format describes a complete date or time: month 13,
+29 February outside a leap year, hour 25. The parser is otherwise lenient:
+
+- it does not insist on zero padding, so `2025-1-5` passes for `Y-m-d`, and `25-11-02` passes as the
+  year 25;
+- it does not check a weekday name against the date;
+- it does not range-check a partial format, so `31/02` passes for `d/m`.
+
+A custom message is a `sprintf()` format that is only evaluated when the assertion fails. Write a
+literal percent sign as `%%`.
 
 The `nullOr` and `all` prefixes of the base library work for added assertions too:
 

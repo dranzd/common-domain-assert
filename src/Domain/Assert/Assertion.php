@@ -6,6 +6,7 @@ namespace Dranzd\Common\Domain\Assert;
 
 use DateTime;
 use Webmozart\Assert\Assert;
+use Webmozart\Assert\InvalidArgumentException;
 
 /**
  * Assertions for domain models.
@@ -22,24 +23,32 @@ class Assertion extends Assert
     /**
      * Asserts that a string is a date or time written in the given format.
      *
-     * The format is one accepted by `DateTime::createFromFormat()`. An out-of-range field in a complete
-     * date or time is rejected: month 13, 29 February outside a leap year, hour 25. The parser is
-     * otherwise lenient: it does not insist on zero padding (`2025-1-5` passes for `Y-m-d`) and does not
-     * check a weekday name against the date.
+     * The format is one accepted by `DateTime::createFromFormat()`. A month, day, hour, minute or second
+     * that is out of range is rejected when the format describes a complete date or time: month 13,
+     * 29 February outside a leap year, hour 25. The parser is otherwise lenient:
      *
-     * @param string $message Custom message, used as a `sprintf()` format: `%s` is replaced by the
-     *                        format, and a literal percent sign must be written as `%%`.
+     *  - it does not insist on zero padding, so `2025-1-5` passes for `Y-m-d`, and `25-11-02` passes as
+     *    the year 25;
+     *  - it does not check a weekday name against the date;
+     *  - it does not range-check a partial format, so `31/02` passes for `d/m`.
      *
-     * @throws \InvalidArgumentException If the value does not match the format.
+     * @param string $message Custom message, used as a `sprintf()` format only when the assertion
+     *                        fails: `%s` is replaced by the format, and a literal percent sign must be
+     *                        written as `%%`.
+     *
+     * @throws InvalidArgumentException If the value does not match the format. A subclass may report
+     *                                  failures with its own exception type.
      */
     public static function datetime(string $value, string $format, string $message = ''): void
     {
-        $parsed = DateTime::createFromFormat($format, $value);
-        $errors = DateTime::getLastErrors();
+        try {
+            $parsed = DateTime::createFromFormat($format, $value);
+        } catch (\ValueError) {
+            // The parser refuses a value that contains a NUL byte.
+            $parsed = false;
+        }
 
-        $adjusted = $errors !== false && ($errors['warning_count'] > 0 || $errors['error_count'] > 0);
-
-        if ($parsed === false || $adjusted) {
+        if ($parsed === false || DateTime::getLastErrors() !== false) {
             static::reportInvalidArgument(
                 \sprintf($message ?: 'Expected a date with format %s', $format)
             );
