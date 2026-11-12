@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: monthly
     versioning-strategy: increase-if-necessary
+    ignore:
+      # 2.x changes signatures that subclasses override; supporting it needs a major release.
+      - dependency-name: webmozart/assert
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

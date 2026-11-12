@@ -13,7 +13,7 @@ final class OrderAssertion extends Assertion
 {
     public static function orderNumber(string $value, string $message = ''): void
     {
-        self::regex($value, '/^ORD-\d{6}$/', $message !== '' ? $message : 'Expected an order number, got %s');
+        self::regex($value, '/^ORD-\d{6}$/D', $message !== '' ? $message : 'Expected an order number, got %s');
     }
 
     protected static function reportInvalidArgument($message): never
