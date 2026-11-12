@@ -1,0 +1,67 @@
+name: Release
+
+# Tags the current master commit and publishes a GitHub release whose notes are the matching
+# section of CHANGELOG.md. Run it from the Actions tab (or the API) once the changelog section
+# for the version is on master.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, without the leading "v" (needs a section in CHANGELOG.md)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate the request
+        run: |
+          fail() { echo "::error::$1"; exit 1; }
+
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+            || fail "Version must look like 1.2.3 (got \"$VERSION\")."
+
+          [ "$GITHUB_REF" = "refs/heads/master" ] \
+            || fail "Releases are cut from master (got $GITHUB_REF)."
+
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            fail "Tag v$VERSION already exists."
+          fi
+
+          conclusion=$(gh run list --workflow ci.yml --commit "$GITHUB_SHA" \
+            --json conclusion --jq '.[0].conclusion // "missing"')
+          [ "$conclusion" = "success" ] \
+            || fail "CI has not passed on $GITHUB_SHA (latest run: $conclusion)."
+
+      - name: Extract the release notes from the changelog
+        run: |
+          awk -v heading="## [$VERSION]" '
+            index($0, heading) == 1 { found = 1; next }
+            /^## \[/                { found = 0 }
+            found
+          ' CHANGELOG.md > notes.md
+
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error::CHANGELOG.md has no section for $VERSION."
+            exit 1
+          fi
+
+      - name: Create the tag and the release
+        run: gh release create "v$VERSION" --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md
