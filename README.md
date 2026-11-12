@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Assertions for domain models. `Assertion` is [webmozart/assert](https://github.com/webmozarts/assert)
-with domain-oriented checks added, behind a class of your own namespace that you can extend.
+plus a `datetime()` check, behind a class meant to be extended with the rules of your own domain.
 
 The point of the indirection is ownership. Value objects and entities call `Assertion::...` instead
 of a third-party class, so a domain layer has one place to add its own rules and to decide which
@@ -56,9 +56,10 @@ Assertion::datetime('tomorrow', 'Y-m-d', 'The delivery date must be written as %
 // throws: The delivery date must be written as Y-m-d.
 ```
 
-The format is one accepted by `DateTime::createFromFormat()`. A value the parser would have to
-adjust, such as 29 February outside a leap year or month 13, is rejected. The parser does not insist
-on zero padding, so `2025-1-5` passes for `Y-m-d`.
+The format is one accepted by `DateTime::createFromFormat()`. An out-of-range field in a complete
+date or time is rejected: month 13, 29 February outside a leap year, hour 25. The parser is otherwise
+lenient: it does not insist on zero padding, so `2025-1-5` passes for `Y-m-d`, and it does not check a
+weekday name against the date.
 
 The `nullOr` and `all` prefixes of the base library work for added assertions too:
 
@@ -83,7 +84,7 @@ final class OrderAssertion extends Assertion
 {
     public static function orderNumber(string $value, string $message = ''): void
     {
-        self::regex($value, '/^ORD-\d{6}$/', $message !== '' ? $message : 'Expected an order number, got %s');
+        self::regex($value, '/^ORD-\d{6}$/D', $message !== '' ? $message : 'Expected an order number, got %s');
     }
 
     protected static function reportInvalidArgument($message): never
@@ -100,7 +101,9 @@ OrderAssertion::uuid('nope');              // throws InvalidOrder: Value "nope" 
 ## Compatibility
 
 This package requires `webmozart/assert` 1.x (`^1.11`). The inherited assertions behave exactly as
-that version documents; this package does not change them.
+that version documents; this package does not change them. Version 2.x is not supported yet: it
+changes method signatures that subclasses override and removes the mechanism behind the `nullOr`
+and `all` prefixes for added assertions.
 
 ## Development
 

@@ -1,6 +1,6 @@
 {
     "name": "dranzd/common-domain-assert",
-    "description": "Assertions for domain models: webmozart/assert plus domain-oriented checks, behind one class you can extend with your own rules.",
+    "description": "Assertions for domain models: webmozart/assert plus a datetime check, behind one class you can extend with your own rules.",
     "type": "library",
     "license": "MIT",
     "keywords": [

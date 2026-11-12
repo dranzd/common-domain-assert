@@ -71,7 +71,9 @@ final class AssertionTest extends TestCase
         yield 'day first' => ['02/11/2025', 'd/m/Y'];
         yield 'leap day' => ['2024-02-29', 'Y-m-d'];
         yield 'last second of the day' => ['23:59:59', 'H:i:s'];
-        yield 'names and time zone' => ['Saturday, 02-Nov-2025 14:30:00 UTC', 'l, d-M-Y H:i:s T'];
+        yield 'names and time zone' => ['Sunday, 02-Nov-2025 14:30:00 UTC', 'l, d-M-Y H:i:s T'];
+        // The parser does not check a weekday name against the date: 2 November 2025 is a Sunday.
+        yield 'weekday that does not match the date' => ['Saturday, 02-Nov-2025', 'l, d-M-Y'];
         yield 'atom' => ['2025-11-02T10:00:00+02:00', DATE_ATOM];
         yield 'unix timestamp' => ['1700000000', 'U'];
         // The parser does not insist on zero padding.
@@ -129,12 +131,33 @@ final class AssertionTest extends TestCase
         Assertion::datetime('tomorrow', 'Y-m-d', 'The delivery date is not valid.');
     }
 
+    public function testDatetimeFallsBackToTheDefaultMessageForAnEmptyOrZeroMessage(): void
+    {
+        foreach (['', '0'] as $message) {
+            try {
+                Assertion::datetime('tomorrow', 'Y-m-d', $message);
+                self::fail('An invalid date was accepted.');
+            } catch (InvalidArgumentException $exception) {
+                self::assertSame('Expected a date with format Y-m-d', $exception->getMessage());
+            }
+        }
+    }
+
+    public function testNullOrDatetimeStillRejectsAnInvalidValue(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected a date with format Y-m-d');
+
+        Assertion::nullOrDatetime('tomorrow', 'Y-m-d');
+    }
+
     public function testTheNullOrAndAllPrefixesWorkForDatetime(): void
     {
         Assertion::nullOrDatetime(null, 'Y-m-d');
         Assertion::nullOrDatetime('2025-11-02', 'Y-m-d');
         Assertion::allDatetime(['2025-11-02', '2025-11-03'], 'Y-m-d');
-        $this->addToAssertionCount(3);
+        Assertion::allNullOrDatetime(['2025-11-02', null], 'Y-m-d');
+        $this->addToAssertionCount(4);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Expected a date with format Y-m-d');
@@ -148,6 +171,10 @@ final class AssertionTest extends TestCase
         OrderAssertion::datetime('2025-11-02', 'Y-m-d');
 
         $this->addToAssertionCount(2);
+
+        $this->expectException(InvalidOrder::class);
+
+        OrderAssertion::orderNumber("ORD-000123\n");
     }
 
     public function testASubclassReportsFailuresOfInheritedAssertionsWithItsOwnException(): void

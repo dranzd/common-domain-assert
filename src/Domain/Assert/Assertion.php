@@ -10,23 +10,25 @@ use Webmozart\Assert\Assert;
 /**
  * Assertions for domain models.
  *
- * Every assertion of `Webmozart\Assert\Assert` is available here, together with the domain-oriented
- * checks below. Depend on this class rather than on the base class, and extend it to add the rules
- * of your own domain in one place.
+ * Every assertion of `Webmozart\Assert\Assert` is available here, plus `datetime()`. Depend on this
+ * class rather than on the base class, and extend it to add the rules of your own domain in one place.
  *
  * @method static void nullOrDatetime(string|null $value, string $format, string $message = '')
  * @method static void allDatetime(iterable<string> $value, string $format, string $message = '')
+ * @method static void allNullOrDatetime(iterable<string|null> $value, string $format, string $message = '')
  */
 class Assertion extends Assert
 {
     /**
      * Asserts that a string is a date or time written in the given format.
      *
-     * The format is one accepted by `DateTime::createFromFormat()`. A value the parser has to adjust,
-     * such as `2025-02-29` or `2025-13-01`, is rejected; the parser does not insist on zero padding,
-     * so `2025-1-5` passes for `Y-m-d`.
+     * The format is one accepted by `DateTime::createFromFormat()`. An out-of-range field in a complete
+     * date or time is rejected: month 13, 29 February outside a leap year, hour 25. The parser is
+     * otherwise lenient: it does not insist on zero padding (`2025-1-5` passes for `Y-m-d`) and does not
+     * check a weekday name against the date.
      *
-     * @param string $message Custom message; `%s` is replaced by the format.
+     * @param string $message Custom message, used as a `sprintf()` format: `%s` is replaced by the
+     *                        format, and a literal percent sign must be written as `%%`.
      *
      * @throws \InvalidArgumentException If the value does not match the format.
      */
@@ -39,7 +41,7 @@ class Assertion extends Assert
 
         if ($parsed === false || $adjusted) {
             static::reportInvalidArgument(
-                \sprintf($message !== '' ? $message : 'Expected a date with format %s', $format)
+                \sprintf($message ?: 'Expected a date with format %s', $format)
             );
         }
     }
